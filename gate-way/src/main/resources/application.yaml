@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: gate-way
+  # định nghĩa các bộ định tuyến điều hướng tới các service
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          routes:
+            - id: order-service
+              uri: http://localhost:8081
+              predicates:
+                - Path=/api/orders/**
+            - id: product-service
+              uri: http://localhost:8082
+              predicates:
+                - Path=/api/v1/products/**, /api/v1/inventories/**
+              filters:
+                 # StripPrefix : cắt bớp số lượng đường dẫn đầu tiên
+                - StripPrefix=2
+                 # Can thiệp vào header của request
+                - AddRequestHeader=X-UserId, 10, X-UserName, hunghx
+                - AddResponseHeader=X-UserId, 10
+                # sửa lại đường dẫn
+                - RewritePath=/api/v1/(?<segment>.*), /$\{segment}
+  # Cơ chế điều hướng theo route
+  # Request : http://localhost:8080/api/products/100 => chuyển nguyên path tới uri
+  # http://localhost:8082/api/products/100
+server:
+  port: 8080
+
